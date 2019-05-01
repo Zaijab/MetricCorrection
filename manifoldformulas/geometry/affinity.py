@@ -1,5 +1,3 @@
-# LICENSE: Simplified BSD https://github.com/mmp2/megaman/blob/master/LICENSE
-
 from __future__ import division
 import numpy as np
 from scipy.sparse import isspmatrix
@@ -22,6 +20,7 @@ def affinity_methods():
 
 class Affinity(RegisterSubclasses):
     """Base class for computing affinity matrices"""
+
     def __init__(self, radius=None, symmetrize=True):
         if radius is None:
             raise ValueError("must specify radius for affinity matrix")

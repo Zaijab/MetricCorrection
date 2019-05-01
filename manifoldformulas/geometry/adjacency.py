@@ -1,5 +1,3 @@
-# LICENSE: Simplified BSD https://github.com/mmp2/megaman/blob/master/LICENSE
-
 import numpy as np
 from sklearn import neighbors
 from scipy import sparse
@@ -31,14 +29,15 @@ def adjacency_methods():
 
 class Adjacency(RegisterSubclasses):
     """Base class for computing adjacency matrices"""
+
     def __init__(self, radius=None, n_neighbors=None, mode='distance'):
         self.radius = radius
         self.n_neighbors = n_neighbors
         self.mode = mode
 
         if (radius is None) == (n_neighbors is None):
-           raise ValueError("Must specify either radius or n_neighbors, "
-                            "but not both.")
+            raise ValueError("Must specify either radius or n_neighbors, "
+                             "but not both.")
 
     def adjacency_graph(self, X):
         if self.n_neighbors is not None:
@@ -80,7 +79,6 @@ class BallTreeAdjacency(BruteForceAdjacency):
 class CyFLANNAdjacency(Adjacency):
     name = 'cyflann'
 
-
     def __init__(self, radius=None, n_neighbors=None, flann_index=None,
                  target_precision=None, cyflann_kwds=None):
         self.flann_index = flann_index
@@ -88,13 +86,14 @@ class CyFLANNAdjacency(Adjacency):
         self.cyflann_kwds = cyflann_kwds
         if cyflann_kwds is not None:
             if 'num_checks' in cyflann_kwds.keys():
-                self.check_kwds = {'num_checks':self.cyflann_kwds['num_checks']}
+                self.check_kwds = {
+                    'num_checks': self.cyflann_kwds['num_checks']}
                 del cyflann_kwds['num_checks']
             else:
                 self.check_kwds = {}
         else:
             self.check_kwds = {}
-            
+
         super(CyFLANNAdjacency, self).__init__(radius=radius,
                                                n_neighbors=n_neighbors,
                                                mode='distance')
@@ -108,23 +107,18 @@ class CyFLANNAdjacency(Adjacency):
         cyindex.buildIndex()
         return cyindex
 
-
     def build_index(self, X):
         return self._get_built_index(X)
-
 
     def radius_adjacency(self, index, queries):
         return index.radius_neighbors_graph(queries, self.radius, **self.check_kwds)
 
-
     def knn_addjacency(self, index, queries):
         return index.knn_neighbors_graph(queries, self.n_neighbors)
-
 
     def radius_adjacency(self, X):
         cyindex = self._get_built_index(X)
         return cyindex.radius_neighbors_graph(X, self.radius, **self.check_kwds)
-
 
     def knn_adjacency(self, X):
         cyindex = self._get_built_index(X)
@@ -161,7 +155,7 @@ class PyFLANNAdjacency(Adjacency):
         flindex = self._get_built_index(X)
 
         n_samples, n_features = X.shape
-        X = np.require(X, requirements = ['A', 'C']) # required for FLANN
+        X = np.require(X, requirements=['A', 'C'])  # required for FLANN
 
         graph_i = []
         graph_j = []

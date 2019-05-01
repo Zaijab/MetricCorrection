@@ -4,11 +4,6 @@
    consistent results.
 
 """
-
-# Author: Marina Meila <mmp@stat.washington.edu>
-#         after the Matlab function rmetric.m by Dominique Perrault-Joncas
-# LICENSE: Simplified BSD https://github.com/mmp2/megaman/blob/master/LICENSE
-
 from __future__ import division
 import warnings
 import numpy as np
@@ -17,7 +12,7 @@ from scipy import sparse
 from numpy.linalg import eigh, svd, inv
 
 
-def riemann_metric( Y, laplacian, n_dim=None, invert_h=False, mode_inv = 'svd'):
+def riemann_metric(Y, laplacian, n_dim=None, invert_h=False, mode_inv='svd'):
     """
     Parameters
     ----------
@@ -58,24 +53,26 @@ def riemann_metric( Y, laplacian, n_dim=None, invert_h=False, mode_inv = 'svd'):
     Dominique Perraul-Joncas, Marina Meila, arXiv:1305.7255
     """
     n_samples = laplacian.shape[0]
-    h_dual_metric = np.zeros((n_samples, n_dim, n_dim ))
-    for i in np.arange(n_dim ):
-        for j in np.arange(i,n_dim ):
-            yij = Y[:,i]*Y[:,j]
-            h_dual_metric[ :, i, j] = 0.5*(laplacian.dot(yij)-Y[:,j]*laplacian.dot(Y[:,i])-Y[:,i]*laplacian.dot(Y[:,j]))
+    h_dual_metric = np.zeros((n_samples, n_dim, n_dim))
+    for i in np.arange(n_dim):
+        for j in np.arange(i, n_dim):
+            yij = Y[:, i]*Y[:, j]
+            h_dual_metric[:, i, j] = 0.5*(laplacian.dot(yij)-Y[:, j]
+                                          * laplacian.dot(Y[:, i])-Y[:, i]*laplacian.dot(Y[:, j]))
     for j in np.arange(n_dim-1):
-        for i in np.arange(j+1,n_dim):
-            h_dual_metric[ :,i,j] = h_dual_metric[:,j,i]
+        for i in np.arange(j+1, n_dim):
+            h_dual_metric[:, i, j] = h_dual_metric[:, j, i]
 
     # compute rmetric if requested
-    if( invert_h ):
-        riemann_metric, Hvv, Hsvals, Gsvals = compute_G_from_H( h_dual_metric )
+    if(invert_h):
+        riemann_metric, Hvv, Hsvals, Gsvals = compute_G_from_H(h_dual_metric)
     else:
         riemann_metric = Hvv = Hsvals = Gsvals = None
 
     return h_dual_metric, riemann_metric, Hvv, Hsvals, Gsvals
 
-def riemann_metric_lazy( Y, sample,laplacian, n_dim, invert_h=False, mode_inv = 'svd'):
+
+def riemann_metric_lazy(Y, sample, laplacian, n_dim, invert_h=False, mode_inv='svd'):
     """
     Parameters
     ----------
@@ -118,24 +115,26 @@ def riemann_metric_lazy( Y, sample,laplacian, n_dim, invert_h=False, mode_inv = 
     Dominique Perraul-Joncas, Marina Meila, arXiv:1305.7255
     """
     n_samples = laplacian.shape[0]
-    laplacian = laplacian[sample,:]
+    laplacian = laplacian[sample, :]
     h_dual_metric = np.zeros((len(sample), n_dim, n_dim))
-    for i in np.arange(n_dim ):
-        for j in np.arange(i,n_dim ):
-            yij = Y[:,i]*Y[:,j]
-            h_dual_metric[ :, i, j] = 0.5*(laplacian.dot(yij)-Y[sample,j]*laplacian.dot(Y[:,i])-Y[sample,i]*laplacian.dot(Y[:,j]))
+    for i in np.arange(n_dim):
+        for j in np.arange(i, n_dim):
+            yij = Y[:, i]*Y[:, j]
+            h_dual_metric[:, i, j] = 0.5*(laplacian.dot(yij)-Y[sample, j]
+                                          * laplacian.dot(Y[:, i])-Y[sample, i]*laplacian.dot(Y[:, j]))
     for j in np.arange(n_dim-1):
-        for i in np.arange(j+1,n_dim):
-            h_dual_metric[ :,i,j] = h_dual_metric[:,j,i]
+        for i in np.arange(j+1, n_dim):
+            h_dual_metric[:, i, j] = h_dual_metric[:, j, i]
 
-    if( invert_h ):
-        riemann_metric, Hvv, Hsvals, Gsvals = compute_G_from_H( h_dual_metric )
+    if(invert_h):
+        riemann_metric, Hvv, Hsvals, Gsvals = compute_G_from_H(h_dual_metric)
     else:
         riemann_metric = Hvv = Hsvals = Gsvals = None
 
-    return h_dual_metric,riemann_metric, Hvv, Hsvals, Gsvals
+    return h_dual_metric, riemann_metric, Hvv, Hsvals, Gsvals
 
-def compute_G_from_H( H, mdimG = None, mode_inv = "svd" ):
+
+def compute_G_from_H(H, mdimG=None, mode_inv="svd"):
     """
     Parameters
     ----------
@@ -157,19 +156,21 @@ def compute_G_from_H( H, mdimG = None, mode_inv = "svd" ):
     n_samples = H.shape[0]
     n_dim = H.shape[2]
     if mode_inv is 'svd':
-        Huu, Hsvals, Hvv = np.linalg.svd( H )
+        Huu, Hsvals, Hvv = np.linalg.svd(H)
         if mdimG is None:
             Gsvals = 1./Hsvals
             G = np.zeros((n_samples, n_dim, n_dim))
             for i in np.arange(n_samples):
-                G[i,:,:] = np.dot(Huu[i,:,:], np.dot( np.diag(Gsvals[i,:]), Hvv[i,:,:]))
+                G[i, :, :] = np.dot(Huu[i, :, :], np.dot(
+                    np.diag(Gsvals[i, :]), Hvv[i, :, :]))
         elif mdimG < n_dim:
-            Gsvals[:,:mdimG] = 1./Hsvals[:,:mdimG]
-            Gsvals[:,mdimG:] = 0.
+            Gsvals[:, :mdimG] = 1./Hsvals[:, :mdimG]
+            Gsvals[:, mdimG:] = 0.
             # this can be redone with np.einsum() but it's barbaric
             G = np.zeros((n_samples, mdimG, mdimG))
             for i in np.arange(n_samples):
-                G[i,:,:mdimG] = np.dot(Huu[i,:,mdimG], np.dot( np.diag(Gsvals[i,:mdimG]), Hvv[i,:,:mdimG]))
+                G[i, :, :mdimG] = np.dot(Huu[i, :, mdimG], np.dot(
+                    np.diag(Gsvals[i, :mdimG]), Hvv[i, :, :mdimG]))
         else:
             raise ValueError('mdimG must be <= H.shape[1]')
         return G, Hvv, Hsvals, Gsvals
@@ -227,6 +228,7 @@ class RiemannMetric(object):
     Dominique Perraul-Joncas, Marina Meila, arXiv:1305.7255
 
     """
+
     def __init__(self, Y, laplacian, n_dim=None, mode_inv='svd'):
         # input data
         self.Y = Y
@@ -253,7 +255,7 @@ class RiemannMetric(object):
         self.Gsvals = None
         self.detG = None
 
-    def get_dual_rmetric( self, invert_h = False, mode_inv = 'svd' ):
+    def get_dual_rmetric(self, invert_h=False, mode_inv='svd'):
         """
         Compute the dual Riemannian Metric
         This is not satisfactory, because if mdimG<mdimY the shape of H
@@ -261,20 +263,23 @@ class RiemannMetric(object):
         smaller H with only the rows and columns in G.
         """
         if self.H is None:
-            self.H, self.G, self.Hvv, self.Hsvals, self.Gsvals = riemann_metric(self.Y, self.L, self.mdimG, invert_h = invert_h, mode_inv = mode_inv)
+            self.H, self.G, self.Hvv, self.Hsvals, self.Gsvals = riemann_metric(
+                self.Y, self.L, self.mdimG, invert_h=invert_h, mode_inv=mode_inv)
         if invert_h:
             return self.H, self.G
         else:
             return self.H
 
-    def get_rmetric( self, mode_inv = 'svd', return_svd = False ):
+    def get_rmetric(self, mode_inv='svd', return_svd=False):
         """
         Compute the Reimannian Metric
         """
         if self.H is None:
-            self.H, self.G, self.Hvv, self.Hsval = riemann_metric(self.Y, self.L, self.mdimG, invert_h = True, mode_inv = mode_inv)
+            self.H, self.G, self.Hvv, self.Hsval = riemann_metric(
+                self.Y, self.L, self.mdimG, invert_h=True, mode_inv=mode_inv)
         if self.G is None:
-            self.G, self.Hvv, self.Hsvals,  self.Gsvals = compute_G_from_H( self.H, mode_inv = self.mode_inv )
+            self.G, self.Hvv, self.Hsvals,  self.Gsvals = compute_G_from_H(
+                self.H, mode_inv=self.mode_inv)
         if mode_inv is 'svd' and return_svd:
             return self.G, self.Hvv, self.Hsvals, self.Gsvals
         else:
@@ -285,11 +290,12 @@ class RiemannMetric(object):
 
     def get_detG(self):
         if self.G is None:
-            self.H, self.G, self.Hvv, self.Hsval = riemann_metric(self.Y, self.L, self.mdimG, invert_h = True, mode_inv = self.mode_inv)
+            self.H, self.G, self.Hvv, self.Hsval = riemann_metric(
+                self.Y, self.L, self.mdimG, invert_h=True, mode_inv=self.mode_inv)
         if self.detG is None:
             if self.mdimG == self.mdimY:
                 self.detG = 1./np.linalg.det(H)
             else:
-                self.detG = 1./np.linalg.det(H[:,:mdimG,:mdimG])
+                self.detG = 1./np.linalg.det(H[:, :mdimG, :mdimG])
             # could also be prod eigenvalues
             # inefficient? shall I do it on G?

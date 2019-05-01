@@ -26,9 +26,6 @@ We adopted the following convention:
    * these conventions are the same for dense matrices, for consistency
 """
 
-# Authors: Marina Meila <mmp@stat.washington.edu>
-#         James McQueen <jmcq@u.washington.edu>
-# LICENSE: Simplified BSD https://github.com/mmp2/megaman/blob/master/LICENSE
 from __future__ import division  # removes integer division
 import numpy as np
 from scipy import sparse
